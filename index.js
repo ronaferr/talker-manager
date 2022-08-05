@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const crypto = require('crypto');
+const validationPassword = require('./middlewares/validationPassword');
+const validationUser = require('./middlewares/validationUser');
 
 const talkerList = async () => {
   const talkers = await JSON.parse(fs.readFileSync('./talker.json', 'UTF-8'));
@@ -46,17 +48,9 @@ app.get('/talker/:id', async (req, res) => {
   }
 });
 
-app.post('/login', (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if ([email, password].includes(undefined)) {
-      return res.status(401).json({ message: 'Missing fields' });
-    }
-    const newToken = generateToken();
-    return res.status(HTTP_OK_STATUS).json({ token: newToken });
-  } catch (e) {
-    return res.status(500).send(e.message);
-  }
+app.post('/login', validationPassword, validationUser, (req, res) => {
+  const newToken = generateToken();
+  return res.status(HTTP_OK_STATUS).json({ token: newToken });
 });
 
 app.listen(PORT, () => {
